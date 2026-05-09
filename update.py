@@ -27,38 +27,42 @@ response = requests.get(
 
 soup = BeautifulSoup(response.text, "html.parser")
 
-tables = soup.find_all("table")
-
 stages = []
 
-# Default empty winners
 winner_map = {}
 
-# Parse tables
-for table in tables:
+rows = soup.find_all("tr")
 
-    rows = table.find_all("tr")
+for row in rows:
 
-    for row in rows:
+    text = row.get_text(" ", strip=True)
+
+    # Detect Giro stage rows
+    if "Stage" in text:
 
         cols = row.find_all("td")
 
-        if len(cols) >= 4:
+        if len(cols) >= 3:
 
-            stage_text = cols[1].get_text(strip=True)
+            try:
 
-            winner_text = cols[3].get_text(strip=True)
+                stage_text = cols[0].get_text(strip=True)
 
-            # Detect "Stage X"
-            if "Stage" in stage_text:
+                winner_text = cols[-1].get_text(strip=True)
 
-                try:
-                    stage_number = stage_text.split("Stage")[1].strip()
+                # Extract stage number
+                if "Stage" in stage_text:
 
-                    winner_map[stage_number] = winner_text
+                    stage_number = ''.join(
+                        filter(str.isdigit, stage_text)
+                    )
 
-                except:
-                    pass
+                    if stage_number:
+
+                        winner_map[stage_number] = winner_text
+
+            except:
+                pass
 
 # Build stages
 for i in range(1, 22):
