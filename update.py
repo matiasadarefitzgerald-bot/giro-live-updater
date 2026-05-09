@@ -13,21 +13,54 @@ headers = {
     "X-Master-Key": MASTER_KEY
 }
 
-# Today's date
 today = datetime.utcnow().date()
 
-# Example race source
-url = "https://en.wikipedia.org/wiki/2025_Giro_d%27Italia"
+# PCS Giro results page
+url = "https://www.procyclingstats.com/race/giro-d-italia/2025/results"
 
-response = requests.get(url)
+response = requests.get(
+    url,
+    headers={
+        "User-Agent": "Mozilla/5.0"
+    }
+)
 
 soup = BeautifulSoup(response.text, "html.parser")
 
-# Placeholder parsing
-# We improve this later
+tables = soup.find_all("table")
 
 stages = []
 
+# Default empty winners
+winner_map = {}
+
+# Parse tables
+for table in tables:
+
+    rows = table.find_all("tr")
+
+    for row in rows:
+
+        cols = row.find_all("td")
+
+        if len(cols) >= 4:
+
+            stage_text = cols[1].get_text(strip=True)
+
+            winner_text = cols[3].get_text(strip=True)
+
+            # Detect "Stage X"
+            if "Stage" in stage_text:
+
+                try:
+                    stage_number = stage_text.split("Stage")[1].strip()
+
+                    winner_map[stage_number] = winner_text
+
+                except:
+                    pass
+
+# Build stages
 for i in range(1, 22):
 
     stage_date = datetime(2026, 5, i).date()
@@ -39,11 +72,7 @@ for i in range(1, 22):
     else:
         status = "Upcoming"
 
-    winner = ""
-
-    # Example automatic winner logic
-    if status == "Finished":
-        winner = "Stage Completed"
+    winner = winner_map.get(str(i), "")
 
     stages.append({
         "stage": str(i),
@@ -58,13 +87,14 @@ for i in range(1, 22):
         "avg_speed": ""
     })
 
+# Final JSON structure
 data = {
     "race": "Giro d'Italia",
     "last_updated": str(datetime.utcnow()),
     "stages": stages
 }
 
-# Push update to JSONBin
+# Update JSONBin
 response = requests.put(
     JSONBIN_URL,
     headers=headers,
