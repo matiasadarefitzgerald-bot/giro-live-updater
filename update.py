@@ -1,6 +1,6 @@
 import requests
 import os
-
+ 
 JSONBIN_URL = "https://api.jsonbin.io/v3/b/69fe2434c0954111d8f6bd0b"
 
 MASTER_KEY = os.environ["JSONBIN_KEY"]
