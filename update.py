@@ -1,6 +1,7 @@
 import requests
 import os
 from datetime import datetime
+from bs4 import BeautifulSoup
 
 # JSONBin settings
 JSONBIN_URL = "https://api.jsonbin.io/v3/b/69fe2434c0954111d8f6bd0b"
@@ -12,19 +13,25 @@ headers = {
     "X-Master-Key": MASTER_KEY
 }
 
-# Current UTC date
+# Today's date
 today = datetime.utcnow().date()
 
-# Build stage data automatically
+# Example race source
+url = "https://en.wikipedia.org/wiki/2025_Giro_d%27Italia"
+
+response = requests.get(url)
+
+soup = BeautifulSoup(response.text, "html.parser")
+
+# Placeholder parsing
+# We improve this later
+
 stages = []
 
 for i in range(1, 22):
 
-    # Example Giro stage dates
-    # Adjust later for exact race calendar
     stage_date = datetime(2026, 5, i).date()
 
-    # Automatic stage status
     if stage_date < today:
         status = "Finished"
     elif stage_date == today:
@@ -32,13 +39,18 @@ for i in range(1, 22):
     else:
         status = "Upcoming"
 
-    # Example automatic data structure
+    winner = ""
+
+    # Example automatic winner logic
+    if status == "Finished":
+        winner = "Stage Completed"
+
     stages.append({
         "stage": str(i),
         "status": status,
         "utah_start": "5:30 AM",
         "utah_finish": "10:45 AM",
-        "winner": "",
+        "winner": winner,
         "gc": "",
         "kom": "",
         "points": "",
@@ -46,20 +58,18 @@ for i in range(1, 22):
         "avg_speed": ""
     })
 
-# Full race data
 data = {
     "race": "Giro d'Italia",
     "last_updated": str(datetime.utcnow()),
     "stages": stages
 }
 
-# Update JSONBin
+# Push update to JSONBin
 response = requests.put(
     JSONBIN_URL,
     headers=headers,
     json=data
 )
 
-# Output response
 print(response.status_code)
 print(response.text)
